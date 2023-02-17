@@ -1,8 +1,11 @@
 ﻿using ADO.NET_Playground.SQLCommands.Create;
+using ADO.NET_Playground.SQLCommands.Delete;
 using ADO.NET_Playground.SQLCommands.Insert;
 using ADO.NET_Playground.SQLCommands.Queries;
 using ADO.NET_Playground.SQLCommands.Update;
 using Microsoft.Data.SqlClient;
+using System.Diagnostics.Metrics;
+using System.Transactions;
 
 internal class Program
 {
@@ -16,6 +19,7 @@ internal class Program
 
         using (connection)
         {
+            await RemoveVilain(connection, 1);
         }
     }
 
@@ -53,7 +57,7 @@ internal class Program
 
     private static async Task GetVillanMinions(SqlConnection connection, int villanId)
     {
-        var villanExistsCommand = new SqlCommand(Queries.VillianExistsQuery, connection);
+        var villanExistsCommand = new SqlCommand(Queries.VillianById, connection);
 
         villanExistsCommand.Parameters.AddWithValue("@id", villanId);
 
@@ -106,7 +110,7 @@ internal class Program
             townResult = await townCommand.ExecuteReaderAsync();
         }
 
-        var villanCommand = new SqlCommand(Queries.Villain, connection);
+        var villanCommand = new SqlCommand(Queries.VillainByName, connection);
 
         villanCommand.Parameters.AddWithValue("@villianName", villanName);
 
@@ -188,6 +192,133 @@ internal class Program
             else Console.WriteLine("No town names were affected.");
 
             transaction.Rollback();
+        }
+        catch (Exception)
+        {
+            transaction.Rollback();
+        }
+    }
+
+    private static async Task GetMinionNamesInSpecificOrder(SqlConnection connection)
+    {
+        var minionsCommand = new SqlCommand(Queries.Minions, connection);
+
+        var minionsResult = await minionsCommand.ExecuteReaderAsync();
+
+        var minions = new List<string>();
+
+        while (minionsResult.Read())
+        {
+            minions.Add(minionsResult["name"].ToString());
+        }
+
+        var forwardCounter = 0;
+        var backwardCounter = minions.Count - 1;
+        var arrayLength = minions.Count % 2 == 0 ? minions.Count / 2 : (minions.Count + 1) / 2;
+
+        for (int i = 0; i < arrayLength; i++)
+        {
+            Console.WriteLine(minions[forwardCounter]);
+            if (i + 1 == arrayLength) break;
+            Console.WriteLine(minions[backwardCounter]);
+            forwardCounter++;
+            backwardCounter--;
+        }
+    }
+
+    private static async Task IncreaseMinionAge(SqlConnection connection, int minionId)
+    {
+        var transaction = connection.BeginTransaction();
+
+        try
+        {
+            var minionCommand = new SqlCommand(Update.MinionNameAndAge, connection, transaction);
+
+            minionCommand.Parameters.AddWithValue("@minionId", minionId);
+
+            var minionResult = await minionCommand.ExecuteNonQueryAsync();
+
+            var allMinionsCommand = new SqlCommand(Queries.Minions, connection, transaction);
+
+            var allMinionsResult = await allMinionsCommand.ExecuteReaderAsync();
+
+            while (allMinionsResult.Read())
+            {
+                Console.WriteLine($"{allMinionsResult["Name"]} {allMinionsResult["Age"]}");
+            }
+        }
+        catch (Exception)
+        {
+            transaction.Rollback();
+        }
+    }
+
+    private static async Task RemoveVilain(SqlConnection connection, int vilainId)
+    {
+        var transaction = connection.BeginTransaction();
+
+        try
+        {
+            var villainCommand = new SqlCommand(Queries.VillianById, connection, transaction);
+
+            villainCommand.Parameters.AddWithValue("@id", vilainId);
+
+            var villainResult = await villainCommand.ExecuteReaderAsync();
+
+            if (villainResult.HasRows)
+            {
+                villainResult.Read();
+                Console.WriteLine($"{villainResult["Name"]} was deleted.");
+            }
+            else
+            {
+                Console.WriteLine("No such villain was found.");
+                return;
+            }
+
+            var removeVillainMinionsCommand = new SqlCommand(Delete.DeleteVillainMinions, connection, transaction);
+
+            removeVillainMinionsCommand.Parameters.AddWithValue("@villainId", vilainId);
+
+            var removedMinions = await removeVillainMinionsCommand.ExecuteNonQueryAsync();
+
+            var removeVillainCommand = new SqlCommand(Delete.DeleteVillainById, connection, transaction);
+
+            removeVillainCommand.Parameters.AddWithValue("@villainId", vilainId);
+
+            await removeVillainCommand.ExecuteNonQueryAsync();
+
+            Console.WriteLine($"{removedMinions} minions were released.");
+
+        }
+        catch (Exception)
+        {
+            transaction.Rollback();
+        }
+    }
+
+    private static async Task IncreaseMinionAgeWithStoredProcedure(SqlConnection connection, int minionId)
+    {
+        var transaction = connection.BeginTransaction();
+
+        try
+        {
+            var minionCommand = new SqlCommand(Update.MinionAgeWithStoredProcedure, connection, transaction);
+
+            minionCommand.Parameters.AddWithValue("@minionId", minionId);
+
+            var minionResult = await minionCommand.ExecuteNonQueryAsync();
+
+            var minionGetCommand = new SqlCommand(Queries.Minion, connection, transaction);
+
+            minionGetCommand.Parameters.AddWithValue("@minionId", minionId);
+
+            var minionGetResult = await minionGetCommand.ExecuteReaderAsync();
+
+            while (minionGetResult.Read())
+            {
+                Console.WriteLine($"{minionGetResult["Name"]} {minionGetResult["Age"]}");
+            }
         }
         catch (Exception)
         {
