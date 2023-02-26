@@ -3,12 +3,14 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33414.496
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "P01_StudentSystem", "P01_StudentSystem\P01_StudentSystem.csproj", "{7FE88702-4547-4B96-94F5-E0DC8B100536}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "P01_StudentSystem", "P01_StudentSystem\P01_StudentSystem.csproj", "{7FE88702-4547-4B96-94F5-E0DC8B100536}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3055F42E-AC36-4C45-978F-126F1B9678B3}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "P02_FootballBetting", "P02_FootballBetting\P02_FootballBetting.csproj", "{A925568D-3CE1-43DF-A891-53BC2DF04E44}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,6 +22,10 @@ Global
 		{7FE88702-4547-4B96-94F5-E0DC8B100536}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7FE88702-4547-4B96-94F5-E0DC8B100536}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7FE88702-4547-4B96-94F5-E0DC8B100536}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A925568D-3CE1-43DF-A891-53BC2DF04E44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A925568D-3CE1-43DF-A891-53BC2DF04E44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A925568D-3CE1-43DF-A891-53BC2DF04E44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A925568D-3CE1-43DF-A891-53BC2DF04E44}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
