@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using ProductShop.Data;
 using ProductShop.DTOs.Export;
 using ProductShop.Models;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 
 namespace ProductShop
 {
@@ -14,11 +16,10 @@ namespace ProductShop
         {
             using var db = new ProductShopContext();
 
-            var result = GetCategoriesByProductsCount(db);
+            var result = GetUsersWithProducts(db);
 
             Console.WriteLine(result);
         }
-
 
         public static string ImportUsers(ProductShopContext context, string inputJson)
         {
@@ -127,26 +128,28 @@ namespace ProductShop
 
         public static string GetUsersWithProducts(ProductShopContext context)
         {
-            var dataToExport = context.Users
+            var users = context.Users
                 .Where(u => u.ProductsSold.Any(p => p.Buyer != null))
-                .OrderByDescending(u => u.ProductsSold.Count)
                 .Select(u => new
                 {
+                    firstName = u.FirstName,
                     lastName = u.LastName,
                     age = u.Age,
                     soldProducts = new
                     {
-                        count = u.ProductsSold.Count,
-                        products = u.ProductsSold.Select(p => new
-                        {
+                        count = u.ProductsSold.Count(p => p.Buyer != null),
+                        products = u.ProductsSold
+                        .Where(p => p.Buyer != null)
+                        .Select(p => new {
                             name = p.Name,
-                            price = decimal.Parse(p.Price.ToString("f2"))
+                            price = p.Price
                         })
                     }
                 })
-                .ToArray();
+                .OrderByDescending(u => u.soldProducts.count)
+                .ToList();
 
-            var json = JsonConvert.SerializeObject(new { usersCount = dataToExport.Length, users = dataToExport }, Formatting.Indented);
+            var json = JsonConvert.SerializeObject(new {usersCount = users.Count, users }, Formatting.Indented, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
 
             return json;
         }
