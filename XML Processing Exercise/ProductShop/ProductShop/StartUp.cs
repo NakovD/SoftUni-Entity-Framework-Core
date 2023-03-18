@@ -16,11 +16,7 @@
         {
             using var context = new ProductShopContext();
 
-            //var data = File.ReadAllText("../../../Datasets/categories-products.xml");
-
-            //ImportCategoryProducts(context, data);
-
-            var result = GetUsersWithProducts(context);
+            var result = GetProductsInRange(context);
 
             Console.WriteLine(result);
         }
@@ -199,9 +195,8 @@
                     Age = u.Age,
                     SoldProducts = new SoldProductsDto()
                     {
-                        Count = u.ProductsSold.Count(p => p.Buyer != null),
+                        Count = u.ProductsSold.Count,
                         Products = u.ProductsSold
-                        .Where(p => p.Buyer != null)
                         .Select(p => new ExportSoldProductDto()
                         {
                             Name = p.Name,
@@ -219,7 +214,7 @@
 
             var withUsertsDto = new ExportUsersWithProductsDto
             {
-                Count = dataToExport.Length,
+                Count = context.Users.Count(u => u.ProductsSold.Count > 0),
                 Users = dataToExport
             };
 
